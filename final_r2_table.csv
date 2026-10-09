@@ -1,0 +1,13 @@
+split,features,mean,std
+Coupling-partner,Cond,0.273,0.015
+Coupling-partner,Morgan,0.208,0.003
+Coupling-partner,Morgan+Cond,0.303,0.014
+Random,Cond,0.305,0.018
+Random,Morgan,0.291,0.016
+Random,Morgan+Cond,0.378,0.024
+Reactant-pair,Cond,0.309,0.01
+Reactant-pair,Morgan,0.265,0.008
+Reactant-pair,Morgan+Cond,0.348,0.004
+Reference-grouped,Cond,0.049,0.015
+Reference-grouped,Morgan,0.141,0.028
+Reference-grouped,Morgan+Cond,0.194,0.009

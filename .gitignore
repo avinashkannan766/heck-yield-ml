@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Python environments
+.venv/
+venv/
+env/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.envrc
+
+# Reaxys / private research data
+data/
+*.xlsx
+*.pkl
+*.npy
+*_rxnfp_input.csv
+
+# Notebook — keep out for now
+*.ipynb
+
+# Temporary files
+tempCodeRunnerFile.py
