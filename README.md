@@ -2,9 +2,9 @@
 
 ## Overview
 
-This project investigates machine learning methods for predicting chemical reaction yields in Heck cross-coupling reactions.
+This project investigates machine learning methods for predicting experimental yields in Heck coupling reactions. It compares different molecular and reaction representations and evaluates how well models generalize to reactions with unfamiliar chemical structures.
 
-The objective is to compare different molecular and reaction representations and evaluate how well models generalize to reactions with unfamiliar chemical structures.
+The project focuses on reproducible evaluation, representation comparison, and understanding the limitations of yield prediction models.
 
 ## Project Objectives
 
@@ -22,11 +22,25 @@ The objective is to compare different molecular and reaction representations and
 - **DRFP:** Difference reaction fingerprint representation.
 - **RXNFP:** Learned reaction representations.
 
-### Model Evaluation
+### Data Splitting
 
 The project investigates model performance across different data-splitting strategies, including random splits and more demanding generalization splits.
 
-Performance is summarized using regression metrics and visualizations. Comparisons should use consistent evaluation conditions wherever possible.
+Random splits provide a baseline evaluation. Grouped or other generalization-oriented splits can help investigate whether model performance decreases when related reaction combinations are less likely to appear in both training and test sets.
+
+The interpretation of each split depends on its precise implementation and the chemical information used to define groups.
+
+### Model Evaluation
+
+Model performance is evaluated using regression metrics, including:
+
+- Mean Absolute Error (MAE)
+- Root Mean Squared Error (RMSE)
+- Coefficient of Determination (R²)
+
+Prediction plots and comparisons across data splits are used to examine model performance and generalization.
+
+Comparisons should use consistent evaluation conditions wherever possible.
 
 ## Repository Structure
 
@@ -51,21 +65,20 @@ heck-yield-ml/
 └── README.md
 ```
 
-*This structure describes the intended organization; files should be moved and source code added before considering the repository complete.*
-
 ## Results
 
 The repository includes model evaluation tables and figures comparing selected model configurations and data-splitting strategies.
 
-See the [`results/`](results/) and [`figures/`](figures/) directories for the reported outputs.
+- **Results:** [View the results directory](results/)
+- **Figures:** [View the figures directory](figures/)
 
-Interpretation should consider the exact model configurations, split definitions, and evaluation metrics used to produce each result.
+Interpretation should consider the exact model configurations, split definitions, and evaluation metrics used to produce each result. Reported performance should not be assumed to represent performance on every type of unseen chemical reaction.
 
 ## Dataset Bias and Limitations
 
 Reaction datasets can contain uneven representation of chemical structures, reaction conditions, and yield ranges. Reported performance may therefore depend on the composition of the dataset and the evaluation split.
 
-Random splits can place chemically similar reactions in both training and test sets, potentially overstating performance on genuinely unfamiliar reactions. More demanding generalization splits can provide additional insight, although their difficulty depends on how the split is defined.
+Random splits can place chemically similar reactions in both training and test sets, potentially overstating performance on genuinely unfamiliar reactions. More demanding generalization splits can provide additional insight, although their difficulty depends on how each split is defined.
 
 Invalid or incomplete molecular representations may also affect feature generation. Data-cleaning decisions and excluded records should be documented, and preprocessing should avoid using test-set outcomes to inform model development.
 
@@ -77,5 +90,16 @@ The repository is intended to contain source code, documentation, aggregate resu
 
 Raw datasets, local feature matrices, serialized data files, and notebooks are excluded through `.gitignore`. Users must obtain any required datasets through authorized sources and comply with the relevant licensing terms.
 
-The source code and documentation will be expanded as the workflow is finalized.
+The repository includes reusable utilities for Morgan fingerprint generation, reproducible train/test splitting, and regression evaluation. Further development will focus on integrating these components into a fully reproducible training and benchmarking workflow.
 
+## Future Work
+
+- Integrate feature generation, data splitting, model training, and evaluation into a reproducible workflow.
+- Expand comparisons across molecular and reaction representations.
+- Evaluate additional machine learning models under consistent conditions.
+- Investigate more rigorous generalization splits.
+- Improve documentation of data preprocessing, excluded records, and experimental settings.
+
+## License
+
+See the `LICENSE` file for the licensing terms that apply to this repository.
