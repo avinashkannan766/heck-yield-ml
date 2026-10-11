@@ -1,105 +1,97 @@
-# Heck Reaction Yield Prediction Using Machine Learning
+# Chemistry-Aware ML for Heck-Type Reaction Yield Prediction
 
-## Overview
+How much of a yield model's performance survives when the test set contains
+unseen reactant pairs, coupling partners, or whole publications?
 
-This project investigates machine learning methods for predicting experimental yields in Heck coupling reactions. It compares different molecular and reaction representations and evaluates how well models generalize to reactions with unfamiliar chemical structures.
+## Summary
+Using 23,495 cleaned literature Heck-type reactions, I compared reactant
+structure (Morgan fingerprints), reaction conditions (temperature, time,
+reagents, catalysts, solvents), and both combined, under four train/test
+splits of increasing difficulty. Structure + conditions was best in every
+split, but absolute performance is modest, and the value of conditions
+depends heavily on the split.
 
-The project focuses on reproducible evaluation, representation comparison, and understanding the limitations of yield prediction models.
+## Data
+- 52,415 Reaxys Heck-type records → 23,495 reactions after cleaning
+  (yield parsing, exact-duplicate removal, product-equals-reactant filter,
+  complete reaction core, RDKit validation of all structures).
+- Broad Heck-type set (oxidative, boron, diazonium, C-H activation,
+  photoredox), not only Pd/aryl-halide Heck.
+- The data is licensed and **not included** in this repository.
 
-## Project Objectives
+## Features
+- **Structure:** Morgan fingerprints (radius 2) of both reactants, 4,096 bits.
+  DRFP and RXNFP were also compared.
+- **Conditions:** temperature, log time, bag-of-components for
+  reagents/catalysts and solvents (vocabulary learned from training rows only),
+  and chemistry flags (Pd, phosphine, Rh, Cu, Ag, photoredox, etc.).
 
-- Develop a reproducible workflow for reaction yield prediction.
-- Compare Morgan fingerprints, DRFP, and RXNFP representations.
-- Evaluate classical machine learning models using consistent data splits.
-- Investigate the effect of increasingly challenging generalization splits.
-- Analyze model performance using regression metrics and prediction plots.
+## Evaluation design
+Random Forest with identical settings (100 trees, max_features = 0.1), 3 seeds,
+zero group overlap between train and test:
 
-## Methods
+| Split | Groups held out |
+|---|---|
+| Random | none |
+| Reactant-pair | the (reactant 1, reactant 2) pair |
+| Coupling-partner | the non-alkene partner (aryl halide, boron reagent, etc.) |
+| Reference-grouped | whole publications |
 
-### Molecular and Reaction Representations
+## Results (R², mean ± std over 3 seeds)
+| Split | Morgan | Conditions | Morgan + conditions |
+|---|---|---|---|
+| Random | 0.291 ± 0.016 | 0.305 ± 0.018 | **0.378 ± 0.024** |
+| Reactant-pair | 0.265 ± 0.008 | 0.309 ± 0.010 | **0.348 ± 0.004** |
+| Coupling-partner | 0.208 ± 0.003 | 0.273 ± 0.015 | **0.303 ± 0.014** |
+| Reference-grouped | 0.141 ± 0.028 | 0.049 ± 0.015 | **0.194 ± 0.009** |
 
-- **Morgan fingerprints:** Circular molecular fingerprints generated using RDKit.
-- **DRFP:** Difference reaction fingerprint representation.
-- **RXNFP:** Learned reaction representations.
+Mean-yield baseline: R² ≈ 0, MAE ≈ 16.4. On unseen publications the best
+model reaches MAE ≈ 14.2.
 
-### Data Splitting
+![R2 by split](figures/r2_by_split_errorbars.png)
 
-The project investigates model performance across different data-splitting strategies, including random splits and more demanding generalization splits.
+## Key findings
+1. Structure + conditions is best in every split.
+2. Conditions-only performance stays near 0.3 until publications are held
+   out, then collapses to 0.05. A likely explanation is that conditions
+   partly identify the source paper (not tested directly).
+3. Random-split metrics therefore overstate performance on new experiments.
+4. The ranking holds with gradient boosting (HistGradientBoosting) and with
+   DRFP, so the pattern is not specific to one model or fingerprint.
+5. Block permutation on unseen publications: shuffling either structure or
+   conditions drops R² to roughly zero, so both are needed.
 
-Random splits provide a baseline evaluation. Grouped or other generalization-oriented splits can help investigate whether model performance decreases when related reaction combinations are less likely to appear in both training and test sets.
+## Error analysis
+Predictions are compressed toward the mean. On unseen publications the MAE is
+≈ 51 for true yields below 20% and ≈ 7 for yields of 60-80%
+([parity plot](figures/parity_reference.png)).
 
-The interpretation of each split depends on its precise implementation and the chemical information used to define groups.
+## Limitations
+- **High-yield skew:** mean yield 70.6%, only ~9.5% of reactions at or below
+  40%, none below 1%. Failed experiments are under-reported in the
+  literature. The model should not be used to rule out low-yield reactions.
+- Three seeds, so standard deviations are rough; no hyperparameter tuning.
+- The coupling-partner groups are heuristic for ~21% of reactions.
+- The reference split can still be optimistic (one group, several papers).
+- About 7,000 reactions with missing temperature or time were excluded.
+- Reagent names are used as text features, not converted to structures.
+- DRFP, RXNFP and gradient boosting were run on a subset of the splits.
 
-### Model Evaluation
+## Related work
+HeckLit (J. Org. Chem. 2025) reports R² 0.318-0.380 on a different
+10,002-reaction Heck dataset; HTE benchmarks reach R² > 0.9. Datasets and
+protocols differ, so these numbers are not directly comparable.
 
-Model performance is evaluated using regression metrics, including:
-
-- Mean Absolute Error (MAE)
-- Root Mean Squared Error (RMSE)
-- Coefficient of Determination (R²)
-
-Prediction plots and comparisons across data splits are used to examine model performance and generalization.
-
-Comparisons should use consistent evaluation conditions wherever possible.
-
-## Repository Structure
-
+## Repository
 ```text
 heck-yield-ml/
-├── src/
-│   ├── features.py
-│   ├── splits.py
-│   └── evaluate.py
-├── results/
-│   ├── final_r2_table.csv
-│   ├── multiseed_all_splits.csv
-│   ├── multiseed_ref.csv
-│   ├── multiseed_ref_drfp.csv
-│   └── multiseed_ref_hgb.csv
-├── figures/
-│   ├── feature_importance_ref.png
-│   ├── parity_reference.png
-│   └── r2_by_split_errorbars.png
-├── .gitignore
+├── results/   per-seed metrics and the final R² table (CSV)
+├── figures/   R² by split, parity plot, feature importance
+├── src/       feature, split and evaluation code (coming)
 ├── LICENSE
 └── README.md
 ```
-
-## Results
-
-The repository includes model evaluation tables and figures comparing selected model configurations and data-splitting strategies.
-
-- **Results:** [View the results directory](results/)
-- **Figures:** [View the figures directory](figures/)
-
-Interpretation should consider the exact model configurations, split definitions, and evaluation metrics used to produce each result. Reported performance should not be assumed to represent performance on every type of unseen chemical reaction.
-
-## Dataset Bias and Limitations
-
-Reaction datasets can contain uneven representation of chemical structures, reaction conditions, and yield ranges. Reported performance may therefore depend on the composition of the dataset and the evaluation split.
-
-Random splits can place chemically similar reactions in both training and test sets, potentially overstating performance on genuinely unfamiliar reactions. More demanding generalization splits can provide additional insight, although their difficulty depends on how each split is defined.
-
-Invalid or incomplete molecular representations may also affect feature generation. Data-cleaning decisions and excluded records should be documented, and preprocessing should avoid using test-set outcomes to inform model development.
-
-Predicted yields are estimates, not guarantees of experimental outcomes. Results from this project should be interpreted within the limitations of the available dataset and modeling methodology.
-
-## Reproducibility and Data Handling
-
-The repository is intended to contain source code, documentation, aggregate results, and figures rather than raw or licensed reaction datasets.
-
-Raw datasets, local feature matrices, serialized data files, and notebooks are excluded through `.gitignore`. Users must obtain any required datasets through authorized sources and comply with the relevant licensing terms.
-
-The repository includes reusable utilities for Morgan fingerprint generation, reproducible train/test splitting, and regression evaluation. Further development will focus on integrating these components into a fully reproducible training and benchmarking workflow.
-
-## Future Work
-
-- Integrate feature generation, data splitting, model training, and evaluation into a reproducible workflow.
-- Expand comparisons across molecular and reaction representations.
-- Evaluate additional machine learning models under consistent conditions.
-- Investigate more rigorous generalization splits.
-- Improve documentation of data preprocessing, excluded records, and experimental settings.
+Raw and derived reaction data are excluded via `.gitignore`.
 
 ## License
-
-See the `LICENSE` file for the licensing terms that apply to this repository.
+MIT
