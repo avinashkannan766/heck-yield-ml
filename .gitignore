@@ -22,15 +22,14 @@ Thumbs.db
 .env
 .envrc
 
-# Reaxys / private research data
-data/
+# # Reaxys / private research data
+data/*
+!data/README.md
+!data/rxnfp_input.csv
+!data/Heck raw data.xlsx
+
+# Ignore Excel and pickle files elsewhere
 *.xlsx
 *.pkl
-*.npy
-*_rxnfp_input.csv
-
-# Notebook — keep out for now
-*.ipynb
-
 # Temporary files
 tempCodeRunnerFile.py
